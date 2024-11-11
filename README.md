@@ -56,8 +56,8 @@ Antes de rodar o bot, certifique-se de ter os seguintes requisitos:
 ### 1. Clone o Repositório
 
 ```bash
-git clone https://github.com/seu-usuario/seu-repositorio.git
-cd seu-repositorio
+git clone https://github.com/PullDK/Bot-EndGameGG-JS
+cd Bot-EndGameGG-JS
 ```
 
 ### 2. Instale as Dependências
