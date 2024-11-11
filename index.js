@@ -67,3 +67,4 @@ client.on('interactionCreate', async interaction => {
 
 // Iniciar o bot
 client.login(config.token);
+ 
