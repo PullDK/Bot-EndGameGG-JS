@@ -1,2 +1,3 @@
 config/botConfig.json
 config/firebaseConfig.js
+node_modules
