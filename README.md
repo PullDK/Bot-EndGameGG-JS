@@ -63,7 +63,7 @@ cd Bot-EndGameGG-JS
 ### 2. Instale as Dependências
 
 ```bash
-npm install
+npm install discord.js firebase
 ```
 
 ### 3. Configuração do Firebase
