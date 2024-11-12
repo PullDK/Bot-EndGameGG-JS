@@ -10,37 +10,41 @@ async function checkAndUpdateRoles(client, db) {
     return;
   }
 
-  // Carrega todos os membros do servidor no cache
-  await guild.members.fetch();
+  try {
+    // Busca todos os documentos de usuários registrados no Firestore
+    const usersRef = collection(db, 'users');
+    const usersSnapshot = await getDocs(usersRef);
 
-  // Busca todos os documentos de usuários registrados no Firestore
-  const usersRef = collection(db, 'users');
-  const usersSnapshot = await getDocs(usersRef);
+    // Itera sobre cada documento de usuário no Firestore
+    for (const userDoc of usersSnapshot.docs) {
+      const userId = userDoc.id;
+      const userData = userDoc.data();
+      const userPoints = userData.points || 0;
 
-  // Itera sobre cada documento de usuário no Firestore
-  usersSnapshot.forEach(async (userDoc) => {
-    const userId = userDoc.id;
-    const userData = userDoc.data();
-    const userPoints = userData.points || 0;
+      // Busca o membro correspondente individualmente
+      let member;
+      try {
+        member = await guild.members.fetch(userId);
+      } catch (error) {
+        console.log(`Usuário com ID ${userId} não está presente no servidor ou ocorreu um erro ao buscar:`, error);
+        continue;
+      }
 
-    // Busca o membro correspondente no cache atualizado do servidor
-    const member = guild.members.cache.get(userId);
-
-    // Verifica se o membro está no servidor
-    if (member) {
-      // Chama a função de atualização de cargos com os pontos do usuário
-      await updateRoles({ guild, member }, db, userPoints);
-    } else {
-      console.log(`Usuário com ID ${userId} não está presente no servidor.`);
+      // Se o membro foi encontrado, chama a função de atualização de cargos com os pontos do usuário
+      if (member) {
+        await updateRoles({ guild, member }, db, userPoints);
+      }
     }
-  });
+  } catch (error) {
+    console.error('Erro ao atualizar cargos dos membros:', error);
+  }
 }
 
 // Função para inicializar o intervalo de atualização de cargos
 function startRoleUpdateInterval(client, db) {
   setInterval(() => {
     checkAndUpdateRoles(client, db);
-  }, 10000); // A cada 6 horas
+  }, 10000); // A cada 10 segundos para teste; ajuste conforme necessário para produção
 }
 
 module.exports = { startRoleUpdateInterval };

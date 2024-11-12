@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { collection, getDocs, doc, getDoc } = require('firebase/firestore');
+const { collection, getDocs } = require('firebase/firestore');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
@@ -32,14 +32,20 @@ module.exports = {
         return `ID: ${doc.id}\nTipo: ${regraData.tipo}\nPontos: ${regraData.pontos > 0 ? `+${regraData.pontos}` : regraData.pontos}\nDescrição: ${regraData.descrição || ''}`;
       });
 
-      // Busca os pontos gerais dos usuários
+      // Busca os pontos gerais dos usuários com busca individual para evitar o timeout
       const usersRef = collection(db, 'users');
       const usersSnapshot = await getDocs(usersRef);
-      const pontosGerais = usersSnapshot.docs.map((doc) => {
-        const userData = doc.data();
-        const user = interaction.guild.members.cache.get(doc.id);
-        return user ? `<@${user.id}> - ${userData.points} pontos` : null;
-      }).filter(entry => entry !== null);
+      const pontosGerais = await Promise.all(
+        usersSnapshot.docs.map(async (doc) => {
+          const userData = doc.data();
+          try {
+            const user = await interaction.guild.members.fetch(doc.id); // Busca o membro individualmente
+            return `<@${user.id}> - ${userData.points} pontos`;
+          } catch {
+            return null; // Ignora caso o usuário não seja encontrado ou se houve um erro
+          }
+        })
+      ).then(results => results.filter(entry => entry !== null));
 
       // Cria a embed com as informações coletadas
       const embed = new EmbedBuilder()
